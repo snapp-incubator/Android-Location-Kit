@@ -10,9 +10,10 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven(url = "https://developer.huawei.com/repo/")
     }
 }
 
-rootProject.name = "Location"
+rootProject.name = "Snapp Location Kit"
 include(":app")
- 
+include(":location-kit")
