@@ -41,9 +41,9 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
-    api("io.reactivex.rxjava2:rxjava:2.2.18")
+    api("io.reactivex.rxjava2:rxjava:2.2.21")
     api("io.reactivex.rxjava2:rxandroid:2.1.1")
     api("com.jakewharton.rxrelay2:rxrelay:2.1.0")
-    implementation("com.google.android.gms:play-services-location:16.0.0")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation ("com.huawei.hms:location:6.4.0.300")
 }

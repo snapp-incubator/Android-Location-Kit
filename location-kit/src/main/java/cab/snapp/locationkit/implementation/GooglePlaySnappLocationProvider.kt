@@ -8,7 +8,6 @@ import android.os.Looper
 import cab.snapp.locationkit.model.NullLocation
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
-import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
 
 @SuppressLint("MissingPermission")
 internal class GooglePlaySnappLocationProvider(
@@ -48,11 +47,10 @@ internal class GooglePlaySnappLocationProvider(
      * creates location request with update_interval, fast_update_interval and priority.
      */
     private val locationRequest: LocationRequest by lazy {
-        LocationRequest().apply {
-            interval = updateInterval
-            fastestInterval = fastestUpdateInterval
-            priority = PRIORITY_HIGH_ACCURACY
-        }
+        LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, updateInterval)
+            .setWaitForAccurateLocation(false)
+            .setMinUpdateIntervalMillis(fastestUpdateInterval)
+            .build()
     }
 
     /**
@@ -62,12 +60,11 @@ internal class GooglePlaySnappLocationProvider(
      * creates fresh location request with update_interval, fast_update_interval and num updatesCount priority.
      */
     private val locationRequestFreshOnce: LocationRequest by lazy {
-        LocationRequest().apply {
-            numUpdates = freshLocationUpdateCount
-            interval = updateInterval / 2
-            fastestInterval = fastestUpdateInterval / 2
-            priority = PRIORITY_HIGH_ACCURACY
-        }
+        LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, updateInterval / 2)
+            .setWaitForAccurateLocation(false)
+            .setMaxUpdates(freshLocationUpdateCount)
+            .setMinUpdateIntervalMillis(fastestUpdateInterval / 2)
+            .build()
     }
 
     /**
@@ -77,11 +74,9 @@ internal class GooglePlaySnappLocationProvider(
      * inform changes to its subscribers and also the last location will be updated
      */
     private var locationCallback = object : LocationCallback() {
-        override fun onLocationResult(locationResult: LocationResult?) {
+        override fun onLocationResult(locationResult: LocationResult) {
             super.onLocationResult(locationResult)
-            locationResult?.lastLocation?.let {
-                locationIsProvided(it)
-            }
+            locationIsProvided(locationResult.lastLocation)
         }
     }
 
@@ -92,10 +87,10 @@ internal class GooglePlaySnappLocationProvider(
 
     override fun getVendorLocation(callback: (location: Location?) -> Unit) {
         settingsClient.checkLocationSettings(locationSettingsRequest)
-            ?.addOnSuccessListener { _ ->
+            .addOnSuccessListener { _ ->
                 getLastLocation(callback)
             }
-            ?.addOnFailureListener {
+            .addOnFailureListener {
                 (it as? ResolvableApiException)?.let { e ->
                     if (RESOLUTION_REQUIRED_EXCEPTION == e.message && isLocationInHighAccuracyMode()) {
                         getLastLocation(callback, e)
@@ -113,7 +108,7 @@ internal class GooglePlaySnappLocationProvider(
                             )
                         )
                     }
-                } ?: kotlin.run {
+                } ?: run {
                     locationStream.accept(NullLocation(LocationManager.GPS_PROVIDER))
                     callback(NullLocation(LocationManager.GPS_PROVIDER))
                 }
@@ -127,7 +122,7 @@ internal class GooglePlaySnappLocationProvider(
                 // if last location request task was successful then we pass it to the app
                 task.takeIf { it.isSuccessful }?.result?.let {
                     locationIsProvided(it, callback)
-                } ?: kotlin.run {
+                } ?: run {
                     e?.let {
                         locationStream.accept(
                             NullLocation(
@@ -135,22 +130,22 @@ internal class GooglePlaySnappLocationProvider(
                                 it
                             )
                         )
-                    } ?: kotlin.run {
+                    } ?: run {
                         // if by anyhow there isn't any last location, then we trigger
                         // location update to get last location and then stop it after first result
                         fusedLocationClient.requestLocationUpdates(
                             locationRequest,
                             object : LocationCallback() {
-                                override fun onLocationResult(locationResult: LocationResult?) {
+                                override fun onLocationResult(locationResult: LocationResult) {
                                     super.onLocationResult(locationResult)
                                     locationIsProvided(
-                                        locationResult?.lastLocation,
+                                        locationResult.lastLocation,
                                         callback
                                     )
                                     fusedLocationClient.removeLocationUpdates(this)
                                 }
                             },
-                            Looper.myLooper()
+                            Looper.myLooper()!!
                         )
                     }
                 }
@@ -163,12 +158,12 @@ internal class GooglePlaySnappLocationProvider(
         fusedLocationClient.requestLocationUpdates(
             locationRequestFreshOnce,
             object : LocationCallback() {
-                override fun onLocationResult(locationResult: LocationResult?) {
+                override fun onLocationResult(locationResult: LocationResult) {
                     super.onLocationResult(locationResult)
                     remainingUpdateCount--
 
                     locationIsProvided(
-                        locationResult?.lastLocation,
+                        locationResult.lastLocation,
                         null
                     )
 
@@ -177,7 +172,7 @@ internal class GooglePlaySnappLocationProvider(
                     }
                 }
             },
-            Looper.myLooper()
+            Looper.myLooper()!!
         )
     }
 
@@ -187,14 +182,14 @@ internal class GooglePlaySnappLocationProvider(
 
     override fun startVendorLocationUpdate() {
         settingsClient.checkLocationSettings(locationSettingsRequest)
-            ?.addOnSuccessListener { _ ->
+            .addOnSuccessListener { _ ->
                 fusedLocationClient.requestLocationUpdates(
                     locationRequest,
                     locationCallback,
-                    Looper.myLooper()
+                    Looper.myLooper()!!
                 )
                 isLocationUpdatesRequested = true
-            }?.addOnFailureListener { it ->
+            }.addOnFailureListener {
                 isLocationUpdatesRequested = false
                 (it as? ResolvableApiException)?.let { e ->
                     locationStream.accept(NullLocation(LocationManager.GPS_PROVIDER, e))
