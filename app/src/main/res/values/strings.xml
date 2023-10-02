@@ -1,3 +1,16 @@
 <resources>
     <string name="app_name">Location</string>
+    <string name="start">Start</string>
+    <string name="stop">Stop</string>
+    <string name="get_location_one_time">Get location one time</string>
+    <string name="latitude">Latitude</string>
+    <string name="longitude">Longitude</string>
+    <string name="accuracy">Accuracy</string>
+    <string name="mock_location">Mock Location</string>
+    <string name="real_location">Real Location</string>
+    <string name="started">Started</string>
+    <string name="stopped">Stopped</string>
+    <string name="location_type">Location Type</string>
+    <string name="location_service_status">Location Service Status</string>
+    <string name="zero">0.0</string>
 </resources>
