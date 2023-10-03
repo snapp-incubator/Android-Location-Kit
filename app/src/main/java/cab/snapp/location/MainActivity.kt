@@ -85,6 +85,9 @@ class MainActivity : AppCompatActivity() {
         binding.locationDetails.accuracy.text = location.accuracy.toString()
         binding.locationDetails.latitude.text = location.latitude.toString()
         binding.locationDetails.longitude.text = location.longitude.toString()
+        binding.locationDetails.bearing.text = location.bearing.toString()
+        binding.locationDetails.speed.text = location.speed.toString()
+        binding.locationDetails.provider.text = location.provider
     }
 
     override fun onDestroy() {
