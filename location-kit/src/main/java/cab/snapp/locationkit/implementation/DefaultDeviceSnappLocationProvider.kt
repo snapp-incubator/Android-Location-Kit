@@ -31,14 +31,14 @@ internal class DefaultDeviceSnappLocationProvider(
     }
     private var isLocationUpdatesRequested: Boolean = false
     private var locationManager: LocationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
-    private var sat_count = 0
+    private var satellitesCount = 0
     private var providerInUse : String? = null
     private val uselessProviders = mutableListOf<String>()
     private val locationListener : LocationListener by lazy {
         LocationListener {
             locationIsProvided(it)
             updateSatellitesCount(it)
-            if(sat_count == 0) {
+            if(satellitesCount == 0) {
                 retryWithMoreAccurateProvider()
             }
             if(isBestProviderInUse().not()) {
@@ -70,7 +70,7 @@ internal class DefaultDeviceSnappLocationProvider(
                         } else {
                             locationManager.requestSingleUpdate(
                                 provider,
-                                LocationListener {
+                                {
 
                                 },
                                 Looper.myLooper()
@@ -164,10 +164,6 @@ internal class DefaultDeviceSnappLocationProvider(
 
     override fun stopVendorLocationUpdate() {
         if(isLocationUpdatesRequested.not()) return
-        /**
-         * We don't need to call this method for now. maybe later we need it. So we decided to make it commented
-         */
-//        removeGpsListeners()
         locationManager.removeUpdates(locationListener)
         providerInUse = null
         isLocationUpdatesRequested = false
@@ -215,7 +211,7 @@ internal class DefaultDeviceSnappLocationProvider(
     }
 
     private fun isGpsEnabled(): Boolean {
-        return sat_count >= 4 && locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+        return satellitesCount >= 4 && locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
     }
 
     private fun isNetworkEnabled() : Boolean {
@@ -248,7 +244,7 @@ internal class DefaultDeviceSnappLocationProvider(
     }
 
     private fun updateSatellitesCount(location: Location) {
-        sat_count = if(location.provider == LocationManager.GPS_PROVIDER) {
+        satellitesCount = if(location.provider == LocationManager.GPS_PROVIDER) {
             location.extras?.getInt("satellites") ?: 0
         } else {
             0
