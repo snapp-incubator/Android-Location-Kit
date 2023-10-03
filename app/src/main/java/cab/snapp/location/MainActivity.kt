@@ -44,20 +44,17 @@ class MainActivity : AppCompatActivity() {
         locationSub = snappLocationProvider.getLocationStream()
             .subscribeOn(Schedulers.io())
             .observeOn(AndroidSchedulers.mainThread())
-            .subscribe {
-                if (it is NullLocation) {
-                    it.exception?.let { exception ->
-                        ResolvableApiExceptionHelper.startResolutionForResult(
-                            this, exception, 1001
-                        )
+            .subscribe { location ->
+                if (location is NullLocation) {
+                    location.exception?.let { exception ->
+                        ResolvableApiExceptionHelper.startResolutionForResult(this, exception, 1001)
                     } ?: run {
                         Toast.makeText(this, "null location", Toast.LENGTH_SHORT).show()
                     }
                 } else {
-                    lastLocation = it
-                    showLocationDetails(it)
+                    lastLocation = location
+                    showLocationDetails(location)
                 }
-
             }
 
         locationMockSub = snappLocationProvider.getMockLocationStream()
@@ -115,8 +112,8 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("MissingPermission")
     fun getLocationOneTime() {
         locationPermissionHelper.getLocationPermission {
-            snappLocationProvider.getLocation { providedLocation ->
-                providedLocation?.let {
+            snappLocationProvider.getLocation { location ->
+                location?.let {
                     showLocationDetails(it)
                 }
             }
