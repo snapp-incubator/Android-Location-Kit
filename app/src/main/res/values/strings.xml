@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Location</string>
+    <string name="app_name">Snapp-LK</string>
     <string name="start">Start</string>
     <string name="stop">Stop</string>
     <string name="get_location_one_time">Get location one time</string>
