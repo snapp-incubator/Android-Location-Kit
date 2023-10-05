@@ -5,6 +5,8 @@ Snapp Location kit is a library that simplifies the process of working with Andr
 
 
 
+<img src="/upload/logo-snapp-location-kit.png" alt="drawing" width="75%"/>
+
 ## Features
 
 - Support Google location
